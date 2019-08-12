@@ -1,0 +1,6 @@
+requests
+wheel
+bs4
+lxml
+selenium
+selenium-requests
