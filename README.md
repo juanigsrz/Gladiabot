@@ -7,6 +7,14 @@ Within a virtual python3 environment, install all the required packages in 'requ
 
 [Download, install and setup Geckodriver](https://github.com/mozilla/geckodriver/releases)
 
+```
+wget https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz
+tar -xvzf geckodriver*
+chmod +x geckodriver
+sudo mv geckodriver /usr/local/bin/
+rm geckodriver*
+```
+
 Setup the required environment variables:
 
 | Variable      | Description                       |

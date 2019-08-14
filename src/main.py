@@ -6,7 +6,6 @@ from seleniumrequests import Firefox
 from selenium.webdriver.support.wait import WebDriverWait
 from bs4 import BeautifulSoup
 
-
 """
 Global info
 """
@@ -16,11 +15,12 @@ login_data = {
     'login_url'     : 'https://lobby.gladiatus.gameforge.com/en_GB/',
     'server_country': 'en',
     'server_number' : 28,
-    'index_url'     : f'https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/index.php',
-    'ajax_url'      : f'https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/ajax.php',
+    'index_url'     : '',
+    'ajax_url'      : '',
 }
 work_data = {'dollForJob7': 1, 'timeToWork': 1, 'jobType': 4}
 food_data  = {'bag': 512} # 512 is the first inventory page, 513 is the second...
+sell_data  = {'bags': [513,]}
 
 """
 Utility
@@ -41,35 +41,40 @@ def get_hash(text):
         i += 1
     return secureHash
 def get_hp_percentage():
-    res = driver.request('GET', login_data['index_url'], data = {'mod': 'overview', 'sh': secureHash})
+    res = driver.request('GET', login_data['index_url'] + f"?mod=overview&sh={secureHash}")
     soup = BeautifulSoup(res.text, 'html5lib')
     return int(soup.select('div#header_values_hp_percent')[0].text[:-1])
+def get_milliseconds():
+    return int(round(time.time() * 1000))
 
 """
 Management
 """
-def place_food_in_inventory():
-    print("Let's place some food into the inventory!")
+
+def collect_food():
+    # TODO: make sure the moved item is actually food
+    # TODO: VERY slow, reduce the number of requests!
+    print("Let's collect some food into the inventory!")
     try:
-        # TODO: VERY slow, reduce the number of requests!
         for i in range(1,6):
             for j in range (1,9):
-                millis = int(round(time.time() * 1000))
-                res = driver.request('GET', login_data['index_url'], data = {'mod': 'packages', 'f': 7, 'fq': -1, 'qry': '', 'page': 1, 'sh': secureHash})
+                res = driver.request('GET', login_data['index_url'] + f"?mod=packages&f=7&fq=-1&qry=&page=1&sh={secureHash}")
                 soup = BeautifulSoup(res.text, 'html5lib')
                 supa = soup.find('input', attrs={'name' : 'packages[]'})['value']
-                driver.request('POST', login_data['ajax_url'], data = {'mod': 'inventory', 'submod': 'move', 'from': -supa, 'fromX': 1, 'fromY': 1, 'to': food_data['bag'], 'toX': i, 'toY': j, 'amount': 1, 'a': millis, 'sh': secureHash})
+                driver.request('POST', login_data['ajax_url'] + f"?mod=inventory&submod=move&from=-{supa}&fromX=1&fromY=1&to={food_data['bag']}&toX={i}&toY={j}&amount=1&a={get_milliseconds()}&sh={secureHash}")
     except Exception as e:
-        print("There was a problem when trying to place food: ", e)
+        print("There was a problem when trying to collect food: ", e)
         return
-    print("Finished placing food into the inventory!")
-
-def go_eat():
+    print("Finished collection food into the inventory!")
+def collect_packages():
+    pass
+def sell_packages():
+    pass
+def eat_food():
     print("Let's go eat!")
 
     try:
-        millis = int(round(time.time() * 1000))
-        res = driver.request('POST', login_data['ajax_url'], data = {'mod': 'inventory', 'submod': 'loadBag', 'bag': food_data['bag'], 'shopType': 0, 'a': millis, 'sh': secureHash})
+        res = driver.request('POST', login_data['ajax_url'], data = {'mod': 'inventory', 'submod': 'loadBag', 'bag': food_data['bag'], 'shopType': 0, 'a': get_milliseconds(), 'sh': secureHash})
 
         i = res.text.find('&quot;Using: Heals')
         if i == -1:
@@ -79,11 +84,11 @@ def go_eat():
         i2 += 12
         i3 += 12
 
-        driver.request('POST', login_data['ajax_url'], data = {'mod': 'inventory', 'submod': 'move', 'from': food_data['bag'], 'fromX': res.text[i2], 'fromY': res.text[i3], 'to': 8, 'toX': 1, 'toY': 1, 'amount': 1, 'doll': 1, 'a': millis, 'sh': secureHash})
+        driver.request('POST', login_data['ajax_url'] + f"?mod=inventory&submod=move&from={food_data['bag']}&fromX=res.text[i2]&fromY=res.text[i3]&to=8&toX=1&toY=1&amount=1&doll=1&a={get_milliseconds()}&sh={secureHash})
         print("Finished eating!")
         return True
     except Exception as e:
-        print("There was a problem on go_eat(): ", e)
+        print("There was a problem on eat_food(): ", e)
         return False
 
 """
@@ -92,7 +97,7 @@ Work
 def go_work():
     print("Let's go to work!")
     try:
-        response = driver.request('POST', login_data['index_url'], data = {'mod': 'work', 'submod': 'start', 'sh': secureHash}.update(work_data))
+        response = driver.request('POST', login_data['index_url'] + f"?mod=work&submod=start&sh={secureHash}", data = work_data)
         work_soup = BeautifulSoup(response.text, 'html5lib')
 
         time_left = [item['data-ticker-time-left'] for item in work_soup.find_all('span', attrs={'data-ticker-time-left' : True})][0]
@@ -109,12 +114,11 @@ Dungeons
 """
 def go_dungeon(location, dungeon_name, posi_sequence, difficulty):
     print(f"Let's go to {dungeon_name}!")
-    millis = int(round(time.time() * 1000))
 
     try:
-        driver.request('POST', login_data['index_url'], data = {'mod': 'dungeon', 'loc': location, 'sh': secureHash, 'dif1': difficulty})
+        driver.request('POST', login_data['index_url'] + f"?mod=dungeon&loc={location}&sh={secureHash}", data = {'dif1': difficulty})
 
-        res = driver.request('GET', login_data['index_url'], data = {'mod': 'dungeon', 'loc': location, 'sh': secureHash)
+        res = driver.request('GET', login_data['index_url'] + f"?mod=dungeon&loc={location}&sh=secureHash)
         # TODO: find this value nicely
         i = res.text.find('dungeonId')
         dungeonID = ""
@@ -127,8 +131,8 @@ def go_dungeon(location, dungeon_name, posi_sequence, difficulty):
 
         for pos in posi_sequence:
             if res.text.find(f"startFight('{pos}', '{dungeonID}')") != -1: # Check if the button is present, so we don't spam pointless requests
-                driver.request('GET', f'https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/ajax/doDungeonFight.php',
-                                      data = {'did': dungeonID, 'posi': pos, 'a': millis, 'sh': secureHash)
+                driver.request('GET', f"https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/ajax/doDungeonFight.php" +
+                                      f"?did={dungeonID}&posi={pos}&a={get_milliseconds()}&sh=secureHash)
                 break
 
         print(f"We finished doing an action on {dungeon_name}!")
@@ -151,7 +155,7 @@ def complete_quests():
     print("Let's complete quests!")
     try:
         while True:
-            res = driver.request('GET', login_data['index_url'], data = {'mod': 'quests', 'sh': secureHash})
+            res = driver.request('GET', login_data['index_url'] + f"?mod=quests&sh=secureHash")
             i = res.text.find('button_finish')
             if i == -1:
                 break
@@ -167,7 +171,7 @@ def complete_quests():
             except:
                 pass
 
-            driver.request('GET', login_data['index_url'], data = {'mod': 'quests', 'submod': 'finishQuest', 'questPos': nr, 'sh': secureHash})
+            driver.request('GET', login_data['index_url'] + f"?mod=quests&submod=finishQuest&questPos={nr}&sh=secureHash)
     except Exception as e:
         print("There was a a problem on complete_quests(): ", e)
         return
@@ -176,7 +180,7 @@ def restart_quests():
     print("Let's restart quests!")
     try:
         while True:
-            res = driver.request('GET', login_data['index_url'], data = {'mod': 'quests', 'sh': secureHash})
+            res = driver.request('GET', login_data['index_url'] + f"?mod=quests&sh=secureHash")
             i = res.text.find('button_restart')
             if i == -1:
                 break
@@ -192,7 +196,7 @@ def restart_quests():
             except:
                 pass
 
-            driver.request('GET', login_data['index_url'], data = {'mod': 'quests', 'submod': 'restartQuest', 'questPos': nr, 'sh': secureHash})
+            driver.request('GET', login_data['index_url'] + f"?mod=quests&submod=restartQuest&questPos={nr}&sh=secureHash)
     except Exception as e:
         print("There was a a problem on restart_quests(): ", e)
         return
@@ -201,10 +205,10 @@ def accept_quests(names, skip_timed_quests = False):
     print("Let's accept quests!")
 
     try:
-        res = driver.request('GET', login_data['index_url'], data = {'mod': 'quests', 'sh': secureHash})
+        res = driver.request('GET', login_data['index_url'] + f"?mod=quests&sh={secureHash})
         pos = res.text.find("Accepted quests:")
         pos += 17
-        if res.text[pos] == '5':
+        if res.text[pos] == res.text[pos+4]:
             print("We got no slots to accept more quests")
             return False
         for name in names:
@@ -229,7 +233,7 @@ def accept_quests(names, skip_timed_quests = False):
                     except:
                         pass
 
-                    driver.request('GET', login_data['index_url'], data = {'mod': 'quests', 'submod': 'startQuest', 'questPos': nr, 'sh': secureHash})
+                    driver.request('GET', login_data['index_url'] + f"?mod=quests&submod=startQuest&questPos={nr}&sh={secureHash})
                     print('Accepted a new quest!')
                     return True
 
@@ -238,7 +242,7 @@ def accept_quests(names, skip_timed_quests = False):
         return False
 
     # Couldn't find any relevant quests
-    driver.request('GET', login_data['index_url'], data = {'mod': 'quests', 'submod': 'resetQuest', 'sh': secureHash})
+    driver.request('GET', login_data['index_url'] + f"?mod=quests&submod=resetQuest&sh={secureHash})
     print("Couldn't find good quests, re-rolling")
     return False
 
@@ -249,10 +253,7 @@ def go_expedition(location, stage):
     print("Let's go into an expedition!")
 
     try:
-        millis = int(round(time.time() * 1000))
-        expedition_url = f"https://s28-en.gladiatus.gameforge.com/game/ajax.php?mod=location&submod=attack&location={location}&stage={stage}&premium=0&a={millis}&sh={secureHash}"
-
-        res = driver.request('GET', login_data['ajax_url'], data = {'mod': 'location', 'submod': 'attack', 'location': location, 'stage': stage, 'premium': 0, 'a': millis, 'sh': secureHash})
+        res = driver.request('GET', login_data['ajax_url'] + f"?mod=location&submod=attack&location={location}&stage={stage}&premium=0&a={get_milliseconds()}&sh={secureHash})
     except Exception as e:
         print("There was a a problem on go_expedition(): ", e)
         return
@@ -267,13 +268,12 @@ def go_arena_provinciarum(max_fight_level = 9999):
     print("Let's go to the arena provinciarum!")
 
     try:
-        res = driver.request('GET', login_data['index_url'], data = {'mod': 'arena', 'submod': serverArena, 'aType': 2, 'sh': secureHash})
+        res = driver.request('GET', login_data['index_url'] f"?mod=arena&submod=serverArena&aType=2&sh={secureHash})
         i2 = 0
         OK = 0
         i2 = res.text.find('Province</th')
         try:
             for x in range(5):
-                millis = int(round(time.time() * 1000))
                 i = res.text.find('<a target="_blank" href="', i2 + 50)
                 i2 = res.text.find('<td>', i)
                 # TODO: Find these values nicely
@@ -305,10 +305,10 @@ def go_arena_provinciarum(max_fight_level = 9999):
                         id_player_temp += res.text[i]
                         i += 1
                     id_player = int(id_player_temp)
-                    driver.request('GET', login_data['ajax_url'], data = {'mod': 'arena', 'submod': 'doCombat', 'aType': 2, 'opponentId': id_player, 'serverId': id_server, 'country': login_data["country"], 'a': millis, 'sh': secureHash})
+                    driver.request('GET', login_data['ajax_url'] + f"?mod=arena&submod=doCombat&aType=2&opponentId={id_player}&serverId={id_server}&country={login_data['country']}&a={get_milliseconds()}&sh={secureHash})
                     print("Fighted in the arena provinciarum!")
                     break
-            driver.request('POST', login_data['index_url'], data = {'mod': 'arena', 'submod': 'getNewOpponents', 'aType': 2, 'sh': secureHash, 'actionButton' :	'Search for opponents'})
+            driver.request('POST', login_data['index_url'] + f"?mod=arena&submod=getNewOpponents&aType=2&sh={secureHash}, data = {'actionButton' : 'Search for opponents'})
         except Exception as e:
             print("There was a a problem when trying to fight in the arena provinciarum: ", e)
             return
@@ -326,13 +326,12 @@ def go_circus_provinciarum(max_fight_level = 9999):
     print("Let's go to circus provinciarum!")
 
     try:
-        res = driver.request('GET', login_data['index_url'], data = {'mod': 'arena', 'submod': 'serverArena', 'aType': 3, 'sh': secureHash})
+        res = driver.request('GET', login_data['index_url'] + f"?mod=arena&submod=serverArena&aType=3&sh={secureHash})
         i2 = 0
         OK = 0
         i2 = res.text.find('Province</th')
         try:
             for x in range(5):
-                millis = int(round(time.time() * 1000))
                 i = res.text.find('<a target="_blank" href="', i2 + 50)
                 i2 = res.text.find('<td>', i)
                 # TODO: find these values nicely
@@ -365,10 +364,10 @@ def go_circus_provinciarum(max_fight_level = 9999):
                         id_player_temp += res.text[i]
                         i += 1
                     id_player = int(id_player_temp)
-                    driver.request('GET', login_data['ajax_url'], data = {'mod': 'arena', 'submod': 'doCombat', 'aType': 3, 'opponentId': id_player, 'serverId': id_server, 'country': login_data["country"], 'a': millis, 'sh': secureHash})
+                    driver.request('GET', login_data['ajax_url'], data = {'mod': 'arena', 'submod': 'doCombat', 'aType': 3, 'opponentId': id_player, 'serverId': id_server, 'country': login_data["country"], 'a': get_milliseconds(), 'sh': secureHash})
                     print("Fighted in the circus provinciarum!")
                     break
-            driver.request('POST', login_data['index_url'], data = {'mod': 'arena', 'submod': 'getNewOpponents', 'aType': 3, 'sh': secureHash, 'actionButton' :	'Search for opponents'})
+            driver.request('POST', login_data['index_url'] + f"?mod=arena&submod=getNewOpponents&aType=3&sh={secureHash}", data = {'actionButton' : 'Search for opponents'})
         except Exception as e:
             print("There was a a problem when trying to fight in the circus provinciarum: ", e)
             return
@@ -394,16 +393,16 @@ def plan_manager():
         print(f"I have {hp_percent}% HP left")
         if hp_percent <= 45:
             print("I'm weak, i should eat something")
-            if not go_eat():
+            if not eat_food():
                 print("Couldn't eat, getting some food")
-                place_food_in_inventory()
+                collect_food()
                 print("Trying to eat again")
-                go_eat()
+                eat_food()
 
         ### Process quests
         complete_quests()
         restart_quests()
-        accept_quests(names = ['The Dragon Stronghold:',
+        accept_quests(names = ['The Dragon Stronghold',
                                'x Wild Boar',
                                'at expeditions, in dungeons or in the arenas',
                                'Circus Provinciarum',
@@ -417,18 +416,17 @@ def plan_manager():
         go_circus_provinciarum()
 
         ### Go to expedition
-        go_expedition(location = 3, stage = 1) # Misty Mountains - Wild Boar
+        go_expedition(location = 3, stage = 1) # Wolf Cave - Wild Boar
 
         ### Go to dungeon
         go_dungeon_misty_mountains()
 
         ### Special event "On the Nile"
         # print("Special event (On the Nile): Figthing the goose")
-        # driver.request('POST', login_data['ajax_url'],
-        #              data={'mod': 'location', 'submod': 'attack', 'location': 'nile_bank', 'stage': 1, 'premium': 0, 'a': int(round(time.time() * 1000)), 'sh': secureHash})
+        # driver.request('POST', login_data['ajax_url'] + f"?mod=location&submod=attack&location=nile_bank&stage=1&premium=0&a={get_milliseconds()}&sh={secureHash})
 
-        ### Check daily bonus
-        # driver.request('POST', f'https://s28-en.gladiatus.gameforge.com/game/ajax.php?mod=overview&submod=fetchLoginBonus&a={int(round(time.time() * 1000))}&sh={secureHash}')
+        ### Manage packages
+        # collect_packages()
 
         ### Go to work
         time_working = go_work()
@@ -438,6 +436,9 @@ def plan_manager():
             print("Finished working!")
 
 with Firefox() as driver:
+    login_data['index_url'] = f"https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/index.php"
+    login_data['ajax_url'] = f"https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/ajax.php"
+
     print("Logging in into Gladiatus")
     driver.get(login_data['login_url'])
     driver.find_element_by_id("loginRegisterTabs").find_element_by_css_selector('ul:nth-child(1)').find_element_by_css_selector('li:nth-child(1)').click()
