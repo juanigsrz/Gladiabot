@@ -41,7 +41,7 @@ def get_hash(text):
     return secureHash
 def get_hp_percentage():
     res = driver.request('GET', login_data['index_url'] + f"?mod=overview&sh={secureHash}")
-    soup = BeautifulSoup(res.text, 'html5lib')
+    soup = BeautifulSoup(res.text, 'lxml')
     return int(soup.select('div#header_values_hp_percent')[0].text[:-1])
 def get_milliseconds():
     return int(round(time.time() * 1000))
@@ -58,7 +58,7 @@ def collect_food():
         for i in range(1,6):
             for j in range (1,9):
                 res = driver.request('GET', login_data['index_url'] + f"?mod=packages&f=7&fq=-1&qry=&page=1&sh={secureHash}")
-                soup = BeautifulSoup(res.text, 'html5lib')
+                soup = BeautifulSoup(res.text, 'lxml')
                 supa = soup.find('input', attrs={'name' : 'packages[]'})['value']
                 driver.request('POST', login_data['ajax_url'] + f"?mod=inventory&submod=move&from=-{supa}&fromX=1&fromY=1&to={food_data['bag']}&toX={i}&toY={j}&amount=1&a={get_milliseconds()}&sh={secureHash}")
     except Exception as e:
@@ -114,7 +114,7 @@ def go_work():
     print("Let's go to work!")
     try:
         response = driver.request('POST', login_data['index_url'] + f"?mod=work&submod=start&sh={secureHash}", data = work_data)
-        work_soup = BeautifulSoup(response.text, 'html5lib')
+        work_soup = BeautifulSoup(response.text, 'lxml')
 
         time_left = [item['data-ticker-time-left'] for item in work_soup.find_all('span', attrs={'data-ticker-time-left' : True})][0]
         time_working = int(time_left) / 1000 + 2
@@ -163,6 +163,8 @@ def go_dungeon_pirate_harbour(difficulty = 'Normal'):
     return go_dungeon(location = 1, dungeon_name = "Pirate Harbour's dungeon (On the run)", posi_sequence = [1,2,3,8,7,6], difficulty = difficulty)
 def go_dungeon_misty_mountains(difficulty = 'Normal'):
     return go_dungeon(location = 2, dungeon_name = "Misty Mountains' dungeon (The dragon stronghold)", posi_sequence = [1,2,3,4], difficulty = difficulty)
+def go_dungeon_wolf_cave(difficulty = 'Normal'):
+    return go_dungeon(location = 2, dungeon_name = "Wolf Cave's dungeon (The cave of dark intrigue)", posi_sequence = [1,2,3,4], difficulty = difficulty)
 
 """
 Quests
@@ -417,7 +419,7 @@ def plan_manager():
         ### Process quests
         complete_quests()
         restart_quests()
-        accept_quests(names = ['The Dragon Stronghold',
+        accept_quests(names = ['The cave of dark intrigue',
                                'Wolf Cave: Defeat 6 opponents of your choice',
                                'x Alphawolf',
                                'hours as a Butcher'
@@ -436,7 +438,7 @@ def plan_manager():
         go_expedition(location = 3, stage = 3) # Wolf Cave - Alphawolf
 
         ### Go to dungeon
-        go_dungeon_misty_mountains()
+        go_dungeon_wolf_cave()
 
         ### Special event "On the Nile"
         # print("Special event (On the Nile): Figthing the goose")
@@ -458,6 +460,12 @@ with Firefox() as driver:
     login_data['ajax_url'] = f"https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/ajax.php"
 
     print("Logging in into Gladiatus")
+    # Block image loading on Firefox
+    firefox_profile = webdriver.FirefoxProfile()
+    firefox_profile.set_preference('permissions.default.image', 2)
+    firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+    
+    driver = Firefox(firefox_profile=firefox_profile)
     driver.get(login_data['login_url'])
     driver.find_element_by_id("loginRegisterTabs").find_element_by_css_selector('ul:nth-child(1)').find_element_by_css_selector('li:nth-child(1)').click()
     driver.find_element_by_xpath('//input[@name="email"]').send_keys(login_data['user_email'])

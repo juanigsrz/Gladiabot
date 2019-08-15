@@ -4,3 +4,4 @@ bs4
 lxml
 selenium
 selenium-requests
+lxml
