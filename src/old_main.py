@@ -40,9 +40,13 @@ def get_hash(text):
         i += 1
     return secureHash
 def get_hp_percentage():
-    res = driver.request('GET', login_data['index_url'] + f"?mod=overview&sh={secureHash}")
-    soup = BeautifulSoup(res.text, 'lxml')
-    return int(soup.select('div#header_values_hp_percent')[0].text[:-1])
+    try:
+        res = driver.request('GET', login_data['index_url'] + f"?mod=overview&sh={secureHash}")
+        soup = BeautifulSoup(res.text, 'lxml')
+        return int(soup.select('div#header_values_hp_percent')[0].text[:-1])
+    except Exception as e:
+        print("There was an error when trying to read HP in get_hp_percentage(): ", e)
+        return 1
 def get_milliseconds():
     return int(round(time.time() * 1000))
 
@@ -64,7 +68,7 @@ def collect_food():
     except Exception as e:
         print("There was a problem when trying to collect food: ", e)
         return
-    print("Finished collection food into the inventory!")
+    print("Finished collecting food into the inventory!")
 def collect_packages():
     pass
 def sell_packages():
@@ -88,7 +92,7 @@ def eat_food():
     except Exception as e:
         print("There was a problem on eat_food(): ", e)
         return False
-def purchase_gods_favours(god_to_purchase = 'Diana', favour_rank = 1):
+def purchase_gods_favours(god_to_purchase, favour_rank = 2):
     print("Let's try to purchase gods favours!")
     try:
         gods = enum.Enum('gods', ['Minerva', 'Diana', 'Vulcan', 'Mars', 'Apollo', 'Mercury'], start = 1)
@@ -128,7 +132,7 @@ def go_work():
 """
 Dungeons
 """
-def go_dungeon(location, dungeon_name, posi_sequence, difficulty):
+def go_dungeon(location, dungeon_name, posi_sequence, difficulty, skip_boss):
     print(f"Let's go to {dungeon_name}!")
 
     try:
@@ -147,7 +151,11 @@ def go_dungeon(location, dungeon_name, posi_sequence, difficulty):
 
         for pos in posi_sequence:
             if res.text.find(f"startFight('{pos}', '{dungeonID}')") != -1: # Check if the button is present, so we don't spam pointless requests
-                driver.request('POST', f"https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/ajax/doDungeonFight.php" +
+                if skip_boss and pos == max(posi_sequence):
+                    # skip the last stage if skip_boss is True
+                    driver.request('POST', login_data['index_url'] + f"?mod=dungeon&loc={location}&action=cancelDungeon&sh={secureHash}", data = {'dungeonId': dungeonID})
+                else:
+                    driver.request('POST', f"https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/ajax/doDungeonFight.php" +
                                       f"?did={dungeonID}&posi={pos}&a={get_milliseconds()}&sh={secureHash}")
                 break
 
@@ -157,18 +165,34 @@ def go_dungeon(location, dungeon_name, posi_sequence, difficulty):
         print(f"There was a a problem on {dungeon_name}: ", e)
         return False
 
-def go_dungeon_grimwood(difficulty = 'Normal'):
-    return go_dungeon(location = 0, dungeon_name = "Grimwood's dungeon (Gustavo)", posi_sequence = [1,3,5], difficulty = difficulty)
-def go_dungeon_pirate_harbour(difficulty = 'Normal'):
-    return go_dungeon(location = 1, dungeon_name = "Pirate Harbour's dungeon (On the run)", posi_sequence = [1,2,3,8,7,6], difficulty = difficulty)
-def go_dungeon_misty_mountains(difficulty = 'Normal'):
-    return go_dungeon(location = 2, dungeon_name = "Misty Mountains' dungeon (The dragon stronghold)", posi_sequence = [1,2,3,4], difficulty = difficulty)
-def go_dungeon_wolf_cave(difficulty = 'Normal'):
-    return go_dungeon(location = 2, dungeon_name = "Wolf Cave's dungeon (The cave of dark intrigue)", posi_sequence = [1,2,3,4], difficulty = difficulty)
+# Italy
+def go_dungeon_grimwood(difficulty = 'Normal', skip_boss = False):
+    return go_dungeon(location = 0, dungeon_name = "Grimwood's dungeon (Gustavos Country House)", posi_sequence = [1,3,5], difficulty = difficulty, skip_boss = skip_boss)
+def go_dungeon_pirate_harbour(difficulty = 'Normal', skip_boss = False):
+    return go_dungeon(location = 1, dungeon_name = "Pirate Harbour's dungeon (On the run)", posi_sequence = [1,2,3,8,7,6], difficulty = difficulty, skip_boss = skip_boss)
+def go_dungeon_misty_mountains(difficulty = 'Normal', skip_boss = False):
+    return go_dungeon(location = 2, dungeon_name = "Misty Mountains' dungeon (The dragon stronghold)", posi_sequence = [1,2,3,4], difficulty = difficulty, skip_boss = skip_boss)
+def go_dungeon_wolf_cave(difficulty = 'Normal', skip_boss = False):
+    return go_dungeon(location = 3, dungeon_name = "Wolf Cave's dungeon (The cave of dark intrigue)", posi_sequence = [1,2,3,4], difficulty = difficulty, skip_boss = skip_boss)
+
+# Africa
+def go_dungeon_voodoo_temple(difficulty = 'Normal', skip_boss = False):
+    return go_dungeon(location = 0, dungeon_name = "Voodoo Temple's dungeon (Temple of Perdition)", posi_sequence = [1,2,4,5,6,7,8], difficulty = difficulty, skip_boss = skip_boss)
+def go_dungeon_bridge(difficulty = 'Normal', skip_boss = False):
+    return go_dungeon(location = 1, dungeon_name = "Bridge's dungeon (Abducted)", posi_sequence = [1,2,3,4,5,6,7,8] , difficulty = difficulty, skip_boss = skip_boss)
+def go_dungeon_blood_cave(difficulty = 'Normal', skip_boss = False):
+    return go_dungeon(location = 2, dungeon_name = "Blood Cave's dungeon (Chamber of Pyro)", posi_sequence = [1,6,2,3,4] , difficulty = difficulty, skip_boss = skip_boss)
+def go_dungeon_lost_harbour(difficulty = 'Normal', skip_boss = False):
+    return go_dungeon(location = 3, dungeon_name = "Lost Harbour's dungeon (Poisoned Country)", posi_sequence = [1,2,3,4,5,6,7,8,9] , difficulty = difficulty, skip_boss = skip_boss)
 
 """
 Quests
 """
+def process_quests(names, skip_timed_quests = False):
+    print("Let's process quests!")
+    complete_quests()
+    restart_quests()
+    return accept_quests(names = names, skip_timed_quests = skip_timed_quests)
 def complete_quests():
     print("Let's complete quests!")
     try:
@@ -219,7 +243,7 @@ def restart_quests():
         print("There was a a problem on restart_quests(): ", e)
         return
     print("Finished restarting quests!")
-def accept_quests(names, skip_timed_quests = False):
+def accept_quests(names, skip_timed_quests):
     print("Let's accept quests!")
     try:
         res = driver.request('GET', login_data['index_url'] + f"?mod=quests&sh={secureHash}")
@@ -298,7 +322,7 @@ def go_arena_provinciarum(max_fight_level = 9999):
                 nivel_oponent_temp += res.text[i2 + 4]
                 nivel_oponent_temp += res.text[i2 + 5]
                 nivel_oponent = int(nivel_oponent_temp)
-                if nivel_oponent < max_fight_level:
+                if nivel_oponent <= max_fight_level:
                     OK = 1
                     while res.text[i] != 'h' or res.text[i + 1] != 'r' or res.text [i + 2] != 'e' or res.text[i + 3] != 'f':
                         i += 1
@@ -356,7 +380,7 @@ def go_circus_provinciarum(max_fight_level = 9999):
                 nivel_oponent_temp += res.text[i2 + 4]
                 nivel_oponent_temp += res.text[i2 + 5]
                 nivel_oponent = int(nivel_oponent_temp)
-                if nivel_oponent < max_fight_level:
+                if nivel_oponent <= max_fight_level:
                     OK = 1
                     while res.text[i] != 'h' or res.text[i + 1] != 'r' or res.text [i + 2] != 'e' or res.text[i + 3] != 'f':
                         i += 1
@@ -384,7 +408,7 @@ def go_circus_provinciarum(max_fight_level = 9999):
                     driver.request('POST', login_data['ajax_url'] + f"?mod=arena&submod=doCombat&aType=3&opponentId={id_player}&serverId={id_server}&country={login_data['server_country']}&a={get_milliseconds()}&sh={secureHash}")
                     print("Fighted in the circus provinciarum!")
                     break
-            driver.request('POST', login_data['index_url'] + f"?mod=arena&submod=getNewOpponents&aType=3&sh={secureHash}", data = {'actionButton' : 'Search for opponents'})
+            driver.request('POST', login_data['index_url'] + f"?mod=arena&submod=getNewOpponents&aType=3&sh={secureHash}", data = {'actionButton' : 'Search+for+opponents'})
         except Exception as e:
             print("There was a a problem when trying to fight in the circus provinciarum: ", e)
             return
@@ -402,6 +426,16 @@ def plan_manager():
     """
     print("I'm the plan manager!")
 
+    quest_names = [ 'Arena', 'Circus', 'x Giant Water Snake' ]
+
+    """
+    quest_names = [ 'Circus Provinciarum', 'Provinciarum Arena', 'Abducted:', 'Lost Harbour: Defeat 6 opponents of your choice', 'x Giant Water Snake',
+                    'at expeditions, in dungeons or in the arenas', 'hours as a Butcher', ]
+
+    quest_names = [ 'Circus Provinciarum', 'Provinciarum Arena', 'Blood cave: Defeat 6 opponents of your choice', 'x Giant Beetle',
+                    'at expeditions, in dungeons or in the arenas', ]
+    """
+
     while True:
         print("********** Starting new cycle **********")
 
@@ -417,28 +451,19 @@ def plan_manager():
                 eat_food()
 
         ### Process quests
-        complete_quests()
-        restart_quests()
-        accept_quests(names = ['The cave of dark intrigue',
-                               'Wolf Cave: Defeat 6 opponents of your choice',
-                               'x Alphawolf',
-                               'hours as a Butcher'
-                               'at expeditions, in dungeons or in the arenas',
-                               'Circus Provinciarum',
-                               'Provinciarum Arena',
-                               ], skip_timed_quests = True)
+        process_quests(names = quest_names, skip_timed_quests = False)
 
         ### Fight in the arena
-        go_arena_provinciarum()
+        go_arena_provinciarum(max_fight_level = 46)
 
         ### Fight in the circus
-        go_circus_provinciarum()
+        go_circus_provinciarum(max_fight_level = 40)
 
         ### Go to expedition
-        go_expedition(location = 3, stage = 3) # Wolf Cave - Alphawolf
+        go_expedition(location = 3, stage = 3) # Lost Harbour - Giant Water Snake
 
         ### Go to dungeon
-        go_dungeon_wolf_cave()
+        go_dungeon_lost_harbour(difficulty = 'Normal', skip_boss = True)
 
         ### Special event "On the Nile"
         # print("Special event (On the Nile): Figthing the goose")
@@ -448,8 +473,11 @@ def plan_manager():
         # collect_packages()
         # sell_packages()
 
+        ### Check quests after figthing
+        process_quests(names = quest_names, skip_timed_quests = False)
+
         ### Go to work
-        time_working = go_work()
+        time_working = 3 * 60 # go_work()
         if time_working != -1:
             print(f"Sleeping for {time_working} seconds...")
             time.sleep(time_working)
@@ -460,19 +488,22 @@ with Firefox() as driver:
     login_data['ajax_url'] = f"https://s{login_data['server_number']}-{login_data['server_country']}.gladiatus.gameforge.com/game/ajax.php"
 
     print("Logging in into Gladiatus")
+    """
     # Block image loading on Firefox
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-    
     driver = Firefox(firefox_profile=firefox_profile)
+    """
+
     driver.get(login_data['login_url'])
     driver.find_element_by_id("loginRegisterTabs").find_element_by_css_selector('ul:nth-child(1)').find_element_by_css_selector('li:nth-child(1)').click()
     driver.find_element_by_xpath('//input[@name="email"]').send_keys(login_data['user_email'])
     driver.find_element_by_xpath('//input[@name="password"]').send_keys(login_data['user_password'])
     driver.find_element_by_xpath('//button[@type="submit"]').click()
 
-    WebDriverWait(driver, 15).until(lambda x: x.find_element_by_xpath('//span[@class="serverDetails"]')).click()
+    play_button = WebDriverWait(driver, 15).until(lambda x: x.find_element_by_xpath('//span[@class="serverDetails"]'))
+    play_button.click()
     driver.switch_to.window(driver.window_handles[1])
 
     time.sleep(15) # TODO: fix into an elegant solution, gotta wait for 'secureHash' in JS to be defined
