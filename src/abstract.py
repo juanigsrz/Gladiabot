@@ -1,4 +1,4 @@
-import settings
+import settings, utility
 
 from bs4 import BeautifulSoup
 
