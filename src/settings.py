@@ -14,3 +14,7 @@ login_data = {
 }
 work_data = {'dollForJob7': 1, 'timeToWork': 1, 'jobType': 4}
 food_data  = {'bag': 512} # 512 is the first inventory page, 513 is the second...
+
+# Quests
+quest_names = [ 'Arena', 'Circus' ]
+quest_time_cycle = 90 # Seconds to wait until quests are checked again

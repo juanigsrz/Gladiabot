@@ -1,5 +1,6 @@
 import settings, utility
 
+from bs4 import BeautifulSoup
 from abstract import AbstractManager
 
 class ExpeditionManager(AbstractManager):
@@ -8,9 +9,9 @@ class ExpeditionManager(AbstractManager):
     """
     def go_expedition(self, location, stage):
         print("Let's go into an expedition!")
-
         try:
             self.driver.request('POST', settings.login_data['ajax_url'] + f"?mod=location&submod=attack&location={location}&stage={stage}&premium=0&a={utility.get_milliseconds()}&sh={self.secureHash}")
+            #self.async_request('POST', settings.login_data['ajax_url'] + f"?mod=location&submod=attack&location={location}&stage={stage}&premium=0&a={utility.get_milliseconds()}&sh={self.secureHash}", {})
         except Exception as e:
             print("There was a a problem on go_expedition(): ", e)
             return
@@ -24,26 +25,21 @@ class ExpeditionManager(AbstractManager):
 
         try:
             self.driver.request('POST', settings.login_data['index_url'] + f"?mod=dungeon&loc={location}&sh={self.secureHash}", data = {'dif1': difficulty})
-
             res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=dungeon&loc={location}&sh={self.secureHash}")
-            # TODO: find this value nicely
-            i = res.text.find('dungeonId')
-            dungeonID = ""
-            dungeonID += res.text[i + 18]
-            dungeonID += res.text[i + 19]
-            dungeonID += res.text[i + 20]
-            dungeonID += res.text[i + 21]
-            dungeonID += res.text[i + 22]
-            dungeonID += res.text[i + 23]
+
+            dungeonID = BeautifulSoup(res.text, 'lxml').find('input', attrs={'name' : 'dungeonId'})['value']
 
             for pos in posi_sequence:
                 if res.text.find(f"startFight('{pos}', '{dungeonID}')") != -1: # Check if the button is present, so we don't spam pointless requests
                     if skip_boss and pos == max(posi_sequence):
                         # skip the last stage if skip_boss is True
                         self.driver.request('POST', settings.login_data['index_url'] + f"?mod=dungeon&loc={location}&action=cancelDungeon&sh={self.secureHash}", data = {'dungeonId': dungeonID})
+                        #self.async_request('POST', settings.login_data['index_url'] + f"?mod=dungeon&loc={location}&action=cancelDungeon&sh={self.secureHash}", {'dungeonId': dungeonID})
                     else:
                         self.driver.request('POST', f"https://s{settings.login_data['server_number']}-{settings.login_data['server_country']}.gladiatus.gameforge.com/game/ajax/doDungeonFight.php" +
                                           f"?did={dungeonID}&posi={pos}&a={utility.get_milliseconds()}&sh={self.secureHash}")
+                        #self.async_request('POST', f"https://s{settings.login_data['server_number']}-{settings.login_data['server_country']}.gladiatus.gameforge.com/game/ajax/doDungeonFight.php" +
+                        #                   f"?did={dungeonID}&posi={pos}&a={utility.get_milliseconds()}&sh={self.secureHash}", {})
                     break
 
             print(f"We finished doing an action on {dungeon_name}!")

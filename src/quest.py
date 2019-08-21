@@ -1,11 +1,9 @@
+import time
 import settings, utility
 
 from abstract import AbstractManager
 
 class QuestManager(AbstractManager):
-    """
-    Quests
-    """
     def complete_quests(self):
         print("Let's complete quests!")
         try:
@@ -104,3 +102,12 @@ class QuestManager(AbstractManager):
         self.complete_quests()
         self.restart_quests()
         return self.accept_quests(names = names, skip_timed_quests = skip_timed_quests)
+
+    """
+    Custom cycle
+    """
+    def loop_quests(self, skip_timed_quests = False):
+        print(f" - Looping quests!")
+        while True:
+            self.process_quests(names = settings.quest_names, skip_timed_quests = skip_timed_quests)
+            time.sleep(settings.quest_time_cycle)

@@ -1,5 +1,5 @@
-import time
-import inventory, arena, utility, settings, work, expedition, quest
+import time, threading
+import inventory, arena, utility, settings, work, expedition, player, quest
 
 from selenium import webdriver
 from seleniumrequests import Firefox
@@ -15,19 +15,23 @@ def plan_manager():
     """
     print("I'm the plan manager!")
 
-    quest_names = [ 'Arena', 'Circus' ] # [ 'Circus Provinciarum', 'Provinciarum Arena', 'Abducted:', 'Lost Harbour: Defeat 6 opponents of your choice', 'x Giant Water Snake', 'at expeditions, in dungeons or in the arenas', 'hours as a Butcher', ]
-
     arenaManager      = arena.ArenaManager(driver, secureHash)
+    playerManager     = player.PlayerManager(driver, secureHash)
     inventoryManager  = inventory.InventoryManager(driver, secureHash)
     questManager      = quest.QuestManager(driver, secureHash)
     workManager       = work.WorkManager(driver, secureHash)
     expeditionManager = expedition.ExpeditionManager(driver, secureHash)
 
+    # questsProcess = multiprocessing.Process(target = questManager.loop_quests, args = (False,)) # skip_timed_quests = False
+    questsProcess = threading.Thread(target = questManager.loop_quests, args = (False,)) # skip_timed_quests = False
+    questsProcess.daemon = True # This process should die along with the main one
+    questsProcess.start()
+
     while True:
         print("********** Starting new cycle **********")
 
         ### Manage HP
-        hp_percent = inventoryManager.get_hp_percentage()
+        hp_percent = playerManager.get_hp_percentage()
         print(f"I have {hp_percent}% HP left")
         if hp_percent <= 50:
             print("I'm weak, i should eat something")
@@ -37,18 +41,12 @@ def plan_manager():
                 print("Trying to eat again")
                 inventoryManager.eat_food()
 
-        ### Check quests
-        questManager.process_quests(names = quest_names, skip_timed_quests = False)
-
         ### Spend action points
         arenaManager.go_arena_provinciarum(max_fight_level = 47)
-        arenaManager.go_circus_provinciarum(max_fight_level = 42)
+        arenaManager.go_circus_provinciarum(max_fight_level = 47)
 
         expeditionManager.go_expedition(location = 0, stage = 3)
         expeditionManager.go_dungeon_cave_temple(difficulty = 'Normal', skip_boss = True)
-
-        ### Check quests again after figthing
-        questManager.process_quests(names = quest_names, skip_timed_quests = False)
 
         ### Go to work
         time_working = 3 * 60 # workManager.go_work()
@@ -80,7 +78,7 @@ with Firefox() as driver:
     play_button.click()
     driver.switch_to.window(driver.window_handles[1])
 
-    time.sleep(15) # TODO: fix into an elegant solution, gotta wait for 'secureHash' in JS to be defined
+    time.sleep(12) # TODO: fix into an elegant solution, gotta wait for 'secureHash' in JS to be defined
     secureHash = utility.get_hash(driver.page_source)
 
     print(f"Logged in, our secure hash is {secureHash}")
