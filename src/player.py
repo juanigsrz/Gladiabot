@@ -16,6 +16,22 @@ class PlayerManager(AbstractManager):
         except Exception as e:
             print("There was an error when trying to read HP in get_hp_percentage(): ", e)
             return -1
+    def get_expedition_points(self):
+        try:
+            res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=overview&sh={self.secureHash}")
+            soup = BeautifulSoup(res.text, 'lxml')
+            return int(soup.select('span#expeditionpoints_value_point')[0].text)
+        except Exception as e:
+            print("There was an error when trying to read expedition points in get_expedition_points(): ", e)
+            return -1
+    def get_dungeon_points(self):
+        try:
+            res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=overview&sh={self.secureHash}")
+            soup = BeautifulSoup(res.text, 'lxml')
+            return int(soup.select('span#dungeonpoints_value_point')[0].text)
+        except Exception as e:
+            print("There was an error when trying to read expedition points in get_expedition_points(): ", e)
+            return -1
     def purchase_gods_favours(self, gods_to_purchase = [], favour_rank = 2):
         print("Let's try to purchase gods favours!")
         try:
@@ -32,7 +48,8 @@ class PlayerManager(AbstractManager):
         try:
             skills = enum.Enum('skills', ['Strength', 'Dexterity', 'Agility', 'Constitution', 'Charisma', 'Intelligence'], start = 1)
             for s in skills_to_train:
-                self.async_request('POST', settings.login_data['index_url'] + f"?mod=training&submod=train&skillToTrain={skills[s].value}&sh={self.secureHash}", {})
+                # self.async_request('POST', settings.login_data['index_url'] + f"?mod=training&submod=train&skillToTrain={skills[s].value}&sh={self.secureHash}", {})
+                self.driver.request('POST', settings.login_data['index_url'] + f"?mod=training&submod=train&skillToTrain={skills[s].value}&sh={self.secureHash}")
             print(f"Tried to train skills successfully!")
             return True
         except Exception as e:

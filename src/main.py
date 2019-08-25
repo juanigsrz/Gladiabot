@@ -1,6 +1,7 @@
 import time, threading
-import inventory, arena, utility, settings, work, expedition, player, quest
+import inventory, arena, utility, settings, work, expedition, player, quest, translation
 
+from random import randrange
 from selenium import webdriver
 from seleniumrequests import Firefox
 from selenium.webdriver.support.wait import WebDriverWait
@@ -23,37 +24,51 @@ def plan_manager():
     expeditionManager = expedition.ExpeditionManager(driver, secureHash)
 
     # questsProcess = multiprocessing.Process(target = questManager.loop_quests, args = (False,)) # skip_timed_quests = False
-    questsProcess = threading.Thread(target = questManager.loop_quests, args = (False,)) # skip_timed_quests = False
+    questsProcess = threading.Thread(target = questManager.loop_quests, args = (False,)) # skip_timed_quests ?
     questsProcess.daemon = True # This process should die along with the main one
     questsProcess.start()
 
     while True:
         print("********** Starting new cycle **********")
 
-        ### Manage HP
+        ### Spend action points
+        arenaManager.go_circus_provinciarum()
+
+        dungeon_points = playerManager.get_dungeon_points()
+        if dungeon_points > 0:
+            expeditionManager.go_dungeon_pirate_harbour(difficulty = translation.dungeon_advanced_text, skip_boss = False)
+
         hp_percent = playerManager.get_hp_percentage()
-        print(f"I have {hp_percent}% HP left")
-        if hp_percent <= 50:
+        if hp_percent <= 35:
             print("I'm weak, i should eat something")
             if not inventoryManager.eat_food():
-                print("Couldn't eat, getting some food")
                 inventoryManager.collect_food()
-                print("Trying to eat again")
-                inventoryManager.eat_food()
+                if not inventoryManager.eat_food():
+                    print("No food at all, going to work")
+                    time_working = workManager.go_work()
+                    if time_working != -1:
+                        print(f"Working for {time_working} seconds...")
+                        time.sleep(time_working)
 
-        ### Spend action points
-        arenaManager.go_arena_provinciarum(max_fight_level = 47)
-        arenaManager.go_circus_provinciarum(max_fight_level = 47)
+        arenaManager.go_arena_provinciarum()
 
-        expeditionManager.go_expedition(location = 0, stage = 3)
-        expeditionManager.go_dungeon_cave_temple(difficulty = 'Normal', skip_boss = True)
+        expedition_points = playerManager.get_expedition_points()
+        if expedition_points > 0:
+            expeditionManager.go_expedition(location = 4, stage = 1)
 
-        ### Go to work
-        time_working = 3 * 60 # workManager.go_work()
+        ### Wait until next cycle
+        time_working = settings.quest_time_cycle
+        """
+        if expedition_points == 0:
+            print("Going to work!")
+            time_working = workManager.go_work()
+        """
+
         if time_working != -1:
+            time_working = time_working + randrange(10)
             print(f"Sleeping for {time_working} seconds...")
             time.sleep(time_working)
-            print("Finished working!")
+            print("Finished sleeping!")
 
 with Firefox() as driver:
     settings.login_data['index_url'] = f"https://s{settings.login_data['server_number']}-{settings.login_data['server_country']}.gladiatus.gameforge.com/game/index.php"
@@ -78,7 +93,7 @@ with Firefox() as driver:
     play_button.click()
     driver.switch_to.window(driver.window_handles[1])
 
-    time.sleep(12) # TODO: fix into an elegant solution, gotta wait for 'secureHash' in JS to be defined
+    time.sleep(12) # TODO: fix into an elegant solution, gotta wait for 'secureHash' in JS to be defined and set
     secureHash = utility.get_hash(driver.page_source)
 
     print(f"Logged in, our secure hash is {secureHash}")

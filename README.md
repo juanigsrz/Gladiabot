@@ -14,6 +14,8 @@ Setup the required environment variables:
 | user_email    | Email of the Gladiatus account    |
 | user_password | Password of the Gladiatus account |
 
-Next, feel free to modify the `login_data`, `work_data` and `food_data` dictionaries in `settings.py` with your desired data, and the bot should be ready to run!
+Make sure that the strings in `translation.py` are in the same language of your server.
+
+Next, feel free to modify the `settings.py` with your desired data, and the bot should be ready to run!
 
 To run the bot within your virtual environment simply doing `python main.py` should be enough.

@@ -1,6 +1,7 @@
 import time
-import settings, utility
+import settings, utility, translation
 
+from random import randrange
 from abstract import AbstractManager
 
 class QuestManager(AbstractManager):
@@ -58,8 +59,8 @@ class QuestManager(AbstractManager):
         print("Let's accept quests!")
         try:
             res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=quests&sh={self.secureHash}")
-            pos = res.text.find("Accepted quests:")
-            pos += 17
+            pos = res.text.find(translation.accepted_quests_text) # pos = res.text.find("Accepted quests:")
+            pos += len(translation.accepted_quests_text) + 1
             if res.text[pos] == res.text[pos+4]:
                 print("We got no slots to accept more quests")
                 return False
@@ -110,4 +111,4 @@ class QuestManager(AbstractManager):
         print(f" - Looping quests!")
         while True:
             self.process_quests(names = settings.quest_names, skip_timed_quests = skip_timed_quests)
-            time.sleep(settings.quest_time_cycle)
+            time.sleep(settings.quest_time_cycle  + randrange(60))

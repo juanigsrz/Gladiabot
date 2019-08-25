@@ -1,4 +1,4 @@
-import settings, utility
+import settings, utility, translation
 
 from abstract import AbstractManager
 
@@ -8,14 +8,14 @@ class ArenaManager(AbstractManager):
     """
     def go_arena(self):
         pass
-    def go_arena_provinciarum(self, max_fight_level = 9999):
+    def go_arena_provinciarum(self, max_fight_level = 9999, random_skip = False):
         print("Let's go to the arena provinciarum!")
 
         try:
             res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=arena&submod=serverArena&aType=2&sh={self.secureHash}")
             i2 = 0
             OK = 0
-            i2 = res.text.find('Province</th')
+            i2 = res.text.find(translation.province_text + "</th")
             try:
                 for x in range(5):
                     i = res.text.find('<a target="_blank" href="', i2 + 50)
@@ -25,7 +25,7 @@ class ArenaManager(AbstractManager):
                     nivel_oponent_temp += res.text[i2 + 4]
                     nivel_oponent_temp += res.text[i2 + 5]
                     nivel_oponent = int(nivel_oponent_temp)
-                    if nivel_oponent <= max_fight_level:
+                    if nivel_oponent <= max_fight_level or (random_skip and randrange(2) > 0):
                         OK = 1
                         while res.text[i] != 'h' or res.text[i + 1] != 'r' or res.text [i + 2] != 'e' or res.text[i + 3] != 'f':
                             i += 1
@@ -66,14 +66,14 @@ class ArenaManager(AbstractManager):
     """
     def go_circus_turma(self):
         pass
-    def go_circus_provinciarum(self, max_fight_level = 9999):
+    def go_circus_provinciarum(self, max_fight_level = 9999, random_skip = False):
         print("Let's go to circus provinciarum!")
 
         try:
             res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=arena&submod=serverArena&aType=3&sh={self.secureHash}")
             i2 = 0
             OK = 0
-            i2 = res.text.find('Province</th')
+            i2 = res.text.find(translation.province_text + "</th")
             try:
                 for x in range(5):
                     i = res.text.find('<a target="_blank" href="', i2 + 50)
@@ -83,7 +83,7 @@ class ArenaManager(AbstractManager):
                     nivel_oponent_temp += res.text[i2 + 4]
                     nivel_oponent_temp += res.text[i2 + 5]
                     nivel_oponent = int(nivel_oponent_temp)
-                    if nivel_oponent <= max_fight_level:
+                    if nivel_oponent <= max_fight_level or (random_skip and randrange(2) > 0):
                         OK = 1
                         while res.text[i] != 'h' or res.text[i + 1] != 'r' or res.text [i + 2] != 'e' or res.text[i + 3] != 'f':
                             i += 1

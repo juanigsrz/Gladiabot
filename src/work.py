@@ -1,6 +1,7 @@
 import settings, utility
 
 from abstract import AbstractManager
+from bs4 import BeautifulSoup
 
 class WorkManager(AbstractManager):
     """

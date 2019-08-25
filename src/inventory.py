@@ -1,4 +1,4 @@
-import settings, utility
+import settings, utility, translation
 
 from abstract import AbstractManager
 from bs4 import BeautifulSoup
@@ -12,25 +12,8 @@ class InventoryManager(AbstractManager):
         # TODO: VERY slow, reduce the number of requests!
         print("Let's collect some food into the inventory!")
         try:
-            """
-            foodBagItems = self.driver.request('POST', settings.login_data['ajax_url'], # Items in the food_data['bag'] inventory bag
-                                                data = {'mod': 'inventory', 'submod': 'loadBag', 'bag': settings.food_data['bag'], 'shopType': 0, 'a': utility.get_milliseconds(), 'sh': self.secureHash})
-            foodPackages = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=packages&f=7&fq=-1&qry=&page=1&sh={self.secureHash}") # Food packages
-
-            inventory = [[True for x in range(6)] for y in range(9)]
-            bagItems = BeautifulSoup(foodBagItems.text, 'lxml').findAll('div')
-            for item in bagItems:
-
-            packages = BeautifulSoup(foodBagItems.text, 'lxml').findAll(class = 'packa')
-            for pack in packages:
-                for i in range(1,6):
-                    for j in range (1,9):
-                        if inventory[i-1][j-1] == True:
-                            inventory[i-1][j-1] = False
-                            self.driver.request('POST', settings.login_data['ajax_url'] + f"?mod=inventory&submod=move&from=-{item['data-item-id']}&fromX=1&fromY=1&to={settings.food_data['bag']}&toX={i}&toY={j}&amount=1&a={utility.get_milliseconds()}&sh={self.secureHash}")
-            """
-            for i in range(1,6):
-                for j in range (1,9):
+            for i in range(1,9):
+                for j in range (1,6):
                     res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=packages&f=7&fq=-1&qry=&page=1&sh={self.secureHash}")
                     soup = BeautifulSoup(res.text, 'lxml')
                     supa = soup.find('input', attrs={'name' : 'packages[]'})['value']
@@ -49,7 +32,7 @@ class InventoryManager(AbstractManager):
         try:
             res = self.driver.request('POST', settings.login_data['ajax_url'], data = {'mod': 'inventory', 'submod': 'loadBag', 'bag': settings.food_data['bag'], 'shopType': 0, 'a': utility.get_milliseconds(), 'sh': self.secureHash})
 
-            i = res.text.find('&quot;Using: Heals')
+            i = res.text.find(translation.using_heals_text)
             if i == -1:
                 raise Exception('Found no food in the inventory')
             i2 = res.text.find('position-x', i)
