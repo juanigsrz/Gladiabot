@@ -1,4 +1,4 @@
-import enum
+import enum, re
 import settings, utility
 
 from abstract import AbstractManager
@@ -8,6 +8,42 @@ class PlayerManager(AbstractManager):
     """
     Player overall stats management
     """
+    def is_arena_ready(self):
+        try:
+            res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=overview&sh={self.secureHash}")
+            soup = BeautifulSoup(res.text, 'lxml')
+            string_to_check = soup.select('div#cooldown_bar_text_arena')[0].text
+            return (not (string_to_check == "-" or bool(re.match(r"[0-9]+:[0-9]+:[0-9]+", string_to_check))))
+        except Exception as e:
+            print("There was an error when trying to read arena status in is_arena_ready(): ", e)
+            return False
+    def is_circus_ready(self):
+        try:
+            res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=overview&sh={self.secureHash}")
+            soup = BeautifulSoup(res.text, 'lxml')
+            string_to_check = soup.select('div#cooldown_bar_text_ct')[0].text
+            return (not (string_to_check == "-" or bool(re.match(r"[0-9]+:[0-9]+:[0-9]+", string_to_check))))
+        except Exception as e:
+            print("There was an error when trying to read circus status in is_circus_ready(): ", e)
+            return False
+    def is_expedition_ready(self):
+        try:
+            res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=overview&sh={self.secureHash}")
+            soup = BeautifulSoup(res.text, 'lxml')
+            string_to_check = soup.select('div#cooldown_bar_text_expedition')[0].text
+            return self.get_expedition_points() > 0 and (not (string_to_check == "-" or bool(re.match(r"[0-9]+:[0-9]+:[0-9]+", string_to_check))))
+        except Exception as e:
+            print("There was an error when trying to read expedition status in is_expedition_ready(): ", e)
+            return False
+    def is_dungeon_ready(self):
+        try:
+            res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=overview&sh={self.secureHash}")
+            soup = BeautifulSoup(res.text, 'lxml')
+            string_to_check = soup.select('div#cooldown_bar_text_dungeon')[0].text
+            return self.get_dungeon_points() > 0 and (not (string_to_check == "-" or bool(re.match(r"[0-9]+:[0-9]+:[0-9]+", string_to_check))))
+        except Exception as e:
+            print("There was an error when trying to read dungeon status in is_dungeon_ready(): ", e)
+            return False
     def get_hp_percentage(self):
         try:
             res = self.driver.request('GET', settings.login_data['index_url'] + f"?mod=overview&sh={self.secureHash}")

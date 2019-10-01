@@ -1,5 +1,5 @@
-import time, threading
-import inventory, arena, utility, settings, work, expedition, player, quest, translation
+import time, multiprocessing, threading, requests
+import inventory, arena, utility, settings, work, expedition, player, quest, translation, hack
 
 from random import randrange
 from selenium import webdriver
@@ -30,42 +30,45 @@ def plan_manager():
 
     while True:
         print("********** Starting new cycle **********")
+        #playerManager.go_training(skills_to_train = ['Charisma', 'Intelligence'])
 
         ### Spend action points
+        #if playerManager.is_circus_ready():
         arenaManager.go_circus_provinciarum()
 
-        dungeon_points = playerManager.get_dungeon_points()
-        if dungeon_points > 0:
-            expeditionManager.go_dungeon_pirate_harbour(difficulty = translation.dungeon_advanced_text, skip_boss = False)
+        #if playerManager.is_dungeon_ready():
+        expeditionManager.go_dungeon_umpokta_tribe(difficulty = translation.dungeon_advanced_text, skip_boss = False)
 
         hp_percent = playerManager.get_hp_percentage()
-        if hp_percent <= 35:
+        if hp_percent <= 45:
             print("I'm weak, i should eat something")
             if not inventoryManager.eat_food():
                 inventoryManager.collect_food()
                 if not inventoryManager.eat_food():
+                    print("Couldn't eat food :(, have none")
+                    """
                     print("No food at all, going to work")
                     time_working = workManager.go_work()
                     if time_working != -1:
                         print(f"Working for {time_working} seconds...")
                         time.sleep(time_working)
+                    """
 
-        arenaManager.go_arena_provinciarum()
+        hp_percent = playerManager.get_hp_percentage()
 
-        expedition_points = playerManager.get_expedition_points()
-        if expedition_points > 0:
-            expeditionManager.go_expedition(location = 4, stage = 1)
+        #if playerManager.is_expedition_ready():
+        if hp_percent >= 45:
+            expeditionManager.go_expedition(location = 7, stage = 3) # Xamã
+
+        #if playerManager.is_arena_ready():
+        if hp_percent >= 45:
+            arenaManager.go_arena_provinciarum()
 
         ### Wait until next cycle
         time_working = settings.quest_time_cycle
-        """
-        if expedition_points == 0:
-            print("Going to work!")
-            time_working = workManager.go_work()
-        """
 
         if time_working != -1:
-            time_working = time_working + randrange(10)
+            time_working = time_working + randrange(settings.quest_time_cycle)
             print(f"Sleeping for {time_working} seconds...")
             time.sleep(time_working)
             print("Finished sleeping!")
@@ -93,8 +96,9 @@ with Firefox() as driver:
     play_button.click()
     driver.switch_to.window(driver.window_handles[1])
 
-    time.sleep(12) # TODO: fix into an elegant solution, gotta wait for 'secureHash' in JS to be defined and set
+    time.sleep(15) # TODO: fix into an elegant solution, gotta wait for 'secureHash' in JS to be defined and set
     secureHash = utility.get_hash(driver.page_source)
 
     print(f"Logged in, our secure hash is {secureHash}")
+
     plan_manager()

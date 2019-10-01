@@ -111,4 +111,4 @@ class QuestManager(AbstractManager):
         print(f" - Looping quests!")
         while True:
             self.process_quests(names = settings.quest_names, skip_timed_quests = skip_timed_quests)
-            time.sleep(settings.quest_time_cycle  + randrange(60))
+            time.sleep(settings.quest_time_cycle  + randrange(settings.quest_time_cycle))

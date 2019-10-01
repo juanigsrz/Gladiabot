@@ -61,23 +61,43 @@ class ExpeditionManager(AbstractManager):
         if difficulty == translation.dungeon_advanced_text:
             return self.go_dungeon(location = 1, dungeon_name = f"Pirate Harbour's ADVANCED dungeon ({translation.dungeon_pirate_harbour_advanced_text})", posi_sequence = [1,2,3,4,5,6,7,8], difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_misty_mountains(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
-        return self.go_dungeon(location = 2, dungeon_name = f"Misty Mountains' dungeon ({translation.dungeon_misty_mountains_text})", posi_sequence = [1,2,3,4], difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_normal_text:
+            return self.go_dungeon(location = 2, dungeon_name = f"Misty Mountains' dungeon ({translation.dungeon_misty_mountains_text})", posi_sequence = [1,2,3,4], difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_advanced_text:
+            return self.go_dungeon(location = 2, dungeon_name = f"Misty Mountains' ADVANCED dungeon ({translation.dungeon_misty_mountains_advanced_text})", posi_sequence = [1,2,3,4], difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_wolf_cave(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
-        return self.go_dungeon(location = 3, dungeon_name = f"Wolf Cave's dungeon ({translation.dungeon_wolf_cave_text})", posi_sequence = [1,2,3,4], difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_normal_text:
+            return self.go_dungeon(location = 3, dungeon_name = f"Wolf Cave's dungeon ({translation.dungeon_wolf_cave_text})", posi_sequence = [1,2,3,4], difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_advanced_text:
+            return self.go_dungeon(location = 3, dungeon_name = f"Wolf Cave's ADVANCED dungeon ({translation.dungeon_wolf_cave_advanced_text})", posi_sequence = [1,2,3,4], difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_ancient_temple(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
         return self.go_dungeon(location = 4, dungeon_name = f"Ancient temple's dungeon ({translation.dungeon_ancient_temple_text})", posi_sequence = [1,2,3,4,6,5], difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_barbarian_village(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
-        return self.go_dungeon(location = 5, dungeon_name = f"Barbarian Village's dungeon ({translation.dungeon_barbarian_village_text})", posi_sequence = [1,2,3,4,5,6,7,8] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_normal_text:
+            return self.go_dungeon(location = 5, dungeon_name = f"Barbarian Village's dungeon ({translation.dungeon_barbarian_village_text})", posi_sequence = [1,2,3,4,5,6,7,8] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_advanced_text:
+            return self.go_dungeon(location = 5, dungeon_name = f"Barbarian Village's ADVANCED dungeon ({translation.dungeon_barbarian_village_advanced_text})", posi_sequence = [1,2,3,4,5,6,7,8,9,10] , difficulty = difficulty, skip_boss = skip_boss)
 
     # Africa
     def go_dungeon_voodoo_temple(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
-        return self.go_dungeon(location = 0, dungeon_name = f"Voodoo Temple's dungeon ({translation.dungeon_voodoo_temple_text})", posi_sequence = [1,2,4,5,6,7,8], difficulty = difficulty, skip_boss = skip_boss)
+        return self.go_dungeon(location = 0, dungeon_name = f"Voodoo Temple's dungeon ({translation.dungeon_voodoo_temple_text})", posi_sequence = [1,2,4,5,6,7,8,3], difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_bridge(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
-        return self.go_dungeon(location = 1, dungeon_name = f"Bridge's dungeon ({translation.dungeon_bridge_text})", posi_sequence = [1,2,3,4,5,6,7,8] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_normal_text:
+            return self.go_dungeon(location = 1, dungeon_name = f"Bridge's dungeon ({translation.dungeon_bridge_text})", posi_sequence = [1,2,3,4,5,6,7,8] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_advanced_text:
+            return self.go_dungeon(location = 1, dungeon_name = f"Bridge's ADVANCED dungeon ({translation.dungeon_bridge_advanced_text})", posi_sequence = [1,2,3,4,5,6,7,8,9,10] , difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_blood_cave(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
         return self.go_dungeon(location = 2, dungeon_name = f"Blood Cave's dungeon ({translation.dungeon_blood_cave_text})", posi_sequence = [1,6,2,3,4] , difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_lost_harbour(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
-        return self.go_dungeon(location = 3, dungeon_name = f"Lost Harbour's dungeon ({translation.go_dungeon_lost_harbour})", posi_sequence = [1,2,3,4,5,6,7,8,9] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_normal_text:
+            return self.go_dungeon(location = 3, dungeon_name = f"Lost Harbour's dungeon ({translation.dungeon_lost_harbour_text})", posi_sequence = [1,2,3,4,5,6,7,8,9] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_advanced_text:
+            return self.go_dungeon(location = 3, dungeon_name = f"Lost Harbour's ADVANCED dungeon ({translation.dungeon_lost_harbour_advanced_text})", posi_sequence = [1,2,3,4,5,6,7,8,9,10] , difficulty = difficulty, skip_boss = skip_boss)
+    def go_dungeon_umpokta_tribe(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
+        if difficulty == translation.dungeon_normal_text:
+            return self.go_dungeon(location = 4, dungeon_name = f"Umpokta Tribe's dungeon ({translation.dungeon_umpokta_tribe_text})", posi_sequence = [1,2,3,4,5,6,7,8] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_advanced_text:
+            return self.go_dungeon(location = 4, dungeon_name = f"Umpokta Tribe's ADVANCED dungeon ({translation.dungeon_umpokta_tribe_advanced_text})", posi_sequence = [1,2,3,4,5,6,7] , difficulty = difficulty, skip_boss = skip_boss)
 
     # Germania
     def go_dungeon_cave_temple(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
