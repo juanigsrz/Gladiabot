@@ -39,4 +39,6 @@ dungeon_umpokta_tribe_advanced_text = "Ultima jornada do Papa Sasama"
 # Germania
 dungeon_cave_temple_text = "Catacumbas Negras"
 dungeon_green_forest_text = "Com toda sua força"
+dungeon_green_forest_advanced_text = "Externsteine"
 dungeon_cursed_village_text = "Campo Viking"
+dungeon_death_hill_text = "Laboratório Misterioso"

@@ -103,6 +103,12 @@ class ExpeditionManager(AbstractManager):
     def go_dungeon_cave_temple(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
         return self.go_dungeon(location = 0, dungeon_name = f"Cave Temple's dungeon ({translation.dungeon_cave_temple_text})", posi_sequence = [1,2,3,4,5,6,7] , difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_green_forest(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
-        return self.go_dungeon(location = 1, dungeon_name = f"The Green Forest's dungeon ({translation.dungeon_green_forest_text})", posi_sequence = [1,2,3,4,5,6,7] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_normal_text:
+            return self.go_dungeon(location = 1, dungeon_name = f"The Green Forest's dungeon ({translation.dungeon_green_forest_text})", posi_sequence = [1,2,3,4,5,6,7] , difficulty = difficulty, skip_boss = skip_boss)
+        if difficulty == translation.dungeon_advanced_text:
+            return self.go_dungeon(location = 1, dungeon_name = f"The Green Forest's ADVANCED dungeon ({translation.dungeon_green_forest_advanced_text})", posi_sequence = [8,6,9,7] , difficulty = difficulty, skip_boss = skip_boss)
     def go_dungeon_cursed_village(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
         return self.go_dungeon(location = 2, dungeon_name = f"Cursed Village's dungeon ({translation.dungeon_green_forest_text})", posi_sequence = [1,2,3,4,5] , difficulty = difficulty, skip_boss = skip_boss)
+    def go_dungeon_death_hill(self, difficulty = translation.dungeon_normal_text, skip_boss = False):
+        if difficulty == translation.dungeon_normal_text:
+            return self.go_dungeon(location = 3, dungeon_name = f"Death Hill's dungeon ({translation.dungeon_death_hill_text})", posi_sequence = [1,2,3,4,5,4] , difficulty = difficulty, skip_boss = skip_boss)

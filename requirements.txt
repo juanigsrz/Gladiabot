@@ -5,3 +5,4 @@ lxml
 selenium
 selenium-requests
 lxml
+aiohttp

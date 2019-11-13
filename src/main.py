@@ -30,14 +30,14 @@ def plan_manager():
 
     while True:
         print("********** Starting new cycle **********")
-        #playerManager.go_training(skills_to_train = ['Charisma', 'Intelligence'])
+        # playerManager.go_training(skills_to_train = ['Charisma', 'Intelligence'])
 
         ### Spend action points
         #if playerManager.is_circus_ready():
         arenaManager.go_circus_provinciarum()
 
         #if playerManager.is_dungeon_ready():
-        expeditionManager.go_dungeon_umpokta_tribe(difficulty = translation.dungeon_advanced_text, skip_boss = False)
+        expeditionManager.go_dungeon_green_forest(difficulty = translation.dungeon_advanced_text, skip_boss = False)
 
         hp_percent = playerManager.get_hp_percentage()
         if hp_percent <= 45:
@@ -58,7 +58,7 @@ def plan_manager():
 
         #if playerManager.is_expedition_ready():
         if hp_percent >= 45:
-            expeditionManager.go_expedition(location = 7, stage = 3) # Xamã
+            expeditionManager.go_expedition(location = 6, stage = 4)
 
         #if playerManager.is_arena_ready():
         if hp_percent >= 45:
